@@ -43,5 +43,5 @@
 2. 项目目录下执行 docker build -t wechatgpt:latest .
 3. docker run -it -d -p 18080:8080 --restart=always --name wechatgpt --privileged=true  -v /etc/localtime:/etc/localtime:ro wechatgpt:latest
 
-# 最后谢明🙏 
+# 🙏 鸣谢 
 - chatgpt-java: https://github.com/Grt1228/chatgpt-java
