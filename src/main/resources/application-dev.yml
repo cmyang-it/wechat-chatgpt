@@ -1,0 +1,28 @@
+# 数据源配置
+spring:
+  # redis 配置
+  data:
+    redis:
+    # 地址
+      host:
+    # 端口，默认为6379
+      port: 6739
+    # 密码
+      password:
+    # 数据库索引
+      database: 16
+
+#wechatmp
+wechatmp:
+  #微信订阅号启用服务器配置时，自己填写的令牌
+  token: xxxxxxxxxxxxxxxxxxxxxx
+
+#chatgpt
+chatgpt:
+  model: gpt-3.5-turbo-1106
+  apikey:
+    - sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  #oepnai 接口基础地址 https://openai.xxx.com/ 或者使用自己的代理地址
+  baseUrl: https://api.openai.com/
+  # 多轮会话携带的历史会话条数
+  messageSize: 5

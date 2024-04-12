@@ -1,0 +1,16 @@
+[Unit]
+Description=wechatgpt - wechat and openai server
+Documentation=https://blog.cmyang.cn
+After=network-online.target remote-fs.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+PIDFile=/var/run/wechatgpt.pid
+ExecStart=/bin/java -Xms64m -Xmx128m -XX:+HeapDumpOnOutOfMemoryError -XX:+UseG1GC -jar /opt/wechatgpt.jar
+ExecReload=/bin/sh -c "/bin/kill -s HUP $(/bin/cat /var/run/wechatgpt.pid)"
+ExecStop=/bin/sh -c "/bin/kill -s TERM $(/bin/cat /var/run/wechatgpt.pid)"
+
+[Install]
+WantedBy=multi-user.target

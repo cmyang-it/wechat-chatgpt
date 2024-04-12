@@ -1,0 +1,53 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  tomcat:
+    uri-encoding: UTF-8
+    accept-count: 1000
+    threads:
+      max: 800
+      min-spare: 100
+
+spring:
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+  # redis 配置
+  data:
+    redis:
+      # 超时时间
+      timeout: 10s
+      lettuce:
+        pool:
+          # 连接池中的最小空闲连接
+          min-idle: 5
+          # 连接池中的最大空闲连接
+          max-idle: 8
+          # 连接池的最大数据库连接数
+          max-active: 10
+          # 连接池最大阻塞等待时间（使用负值表示没有限制）
+          max-wait: -1ms
+
+# 日志配置
+logging:
+  level:
+    cn.cmyang.wechatgpt: info
+    org.springframework: warn
+  #日志文件
+  file:
+    name: /var/log/wechatgpt/wechatgpt.log
+  #历史日志
+  logback:
+    rollingpolicy:
+      #自动清理
+      clean-history-on-start: true
+      max-file-size: 100MB
+      max-history: 10
+      file-name-pattern: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.log.gz
+  pattern:
+    file: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{20} [%method,%line] %-5level - %msg%n'
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{20} [%method,%line] %-5level - %msg%n'
