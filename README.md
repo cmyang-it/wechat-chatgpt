@@ -42,3 +42,6 @@
 1. 将上述配置都修改好后，执行 mvn clean package 会生成 wechatgpt.jar 文件
 2. 项目目录下执行 docker build -t wechatgpt:latest .
 3. docker run -it -d -p 18080:8080 --restart=always --name wechatgpt --privileged=true  -v /etc/localtime:/etc/localtime:ro wechatgpt:latest
+
+# 最后谢明🙏 
+- chatgpt-java: https://github.com/Grt1228/chatgpt-java
