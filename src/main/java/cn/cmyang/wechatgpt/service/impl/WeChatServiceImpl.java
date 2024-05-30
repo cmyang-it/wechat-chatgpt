@@ -3,6 +3,7 @@ package cn.cmyang.wechatgpt.service.impl;
 import cn.cmyang.wechatgpt.bean.WeChatBean;
 import cn.cmyang.wechatgpt.common.CommonConstant;
 import cn.cmyang.wechatgpt.config.WechatMpConfig;
+import cn.cmyang.wechatgpt.manager.AsyncManager;
 import cn.cmyang.wechatgpt.service.ChatgptService;
 import cn.cmyang.wechatgpt.service.WeChatService;
 import cn.cmyang.wechatgpt.utils.RedisCacheUtils;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -54,86 +56,96 @@ public class WeChatServiceImpl implements WeChatService {
         Map<String, String> params = XMLConverUtils.convertToMap(xmlParams);
         if (params.get("MsgType").equals("event")
                 && params.get("Event").equals("subscribe")) {
-            String content = "这里是ChatGPT, 一个由OpenAI训练的大型语言模型。\n 因个人订阅号以及OpenAI接口的限制，消息响应速度较慢，请耐心等待，并按照提示获取处理结果。\n 现在，你可以直接发消息与我对话了！";
+            String content = "这里是ChatGPT, 一个由OpenAI训练的大型语言模型，当前模型为 gpt-4o。\n 因个人订阅号以及OpenAI接口的限制，消息响应速度较慢，请耐心等待，并按照提示获取处理结果。\n 现在，你可以直接发消息与我对话了！";
             return getReplyWeChat(weChatBean.getOpenid(), params.get("ToUserName"), content);
         }
+        //微信推送的参数
         String msgId = params.get("MsgId");
         final String content = params.get("Content");
+        String toUserName = params.get("ToUserName");
+
+        if (!params.get("MsgType").equals("text")) {
+            return getReplyWeChat(weChatBean.getOpenid(), toUserName, "暂时只支持接收文本信息");
+        }
+
+        //缓存每个对话的微信调用次数
+        messageCountMap.merge(msgId, 1, Integer::sum);
+        //当前是微信的第几次调用
+        final Integer currentMsgCount = messageCountMap.get(msgId);
 
         //判断用户今天是否还能对话
         Boolean flag = checkUserChatCount(weChatBean, msgId, content);
         if (flag) {
-            return getReplyWeChat(weChatBean.getOpenid(), params.get("ToUserName"), "对不起，您的体验对话已用光！");
-        }
-        if (!params.get("MsgType").equals("text")) {
-            return getReplyWeChat(weChatBean.getOpenid(), params.get("ToUserName"), "暂时只支持接收文本信息");
-        }
-        messageCountMap.merge(msgId, 1, Integer::sum);
-        if (messageCountMap.get(msgId) == 3) {
             messageCountMap.remove(msgId);
-            return getReplyWeChat(weChatBean.getOpenid(), params.get("ToUserName"), "结果处理中，请稍后输入\"继续\"查看AI处理结果(只支持查询最新的一条处理记录)");
+            return getReplyWeChat(weChatBean.getOpenid(), toUserName, "对不起，您的体验对话已用光！");
         }
+
+        //默认返回success
+        String success = "success";
+
         //正式的处理逻辑
         final String waitKey = String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, weChatBean.getOpenid());
-        final String msgKey = String.format(CommonConstant.CHAT_WX_USER_MSG_REPLY_KEY, msgId);
         if (StringUtils.isNotBlank(content) && content.equals("继续")) {
-            messageCountMap.remove(msgId);
-            if (redisCacheUtils.hasKey(waitKey)) {
-                Object o = redisCacheUtils.getCacheObject(waitKey);
-                Integer contentLength = getByteSize(String.valueOf(o));
-                if (contentLength < 2048) {
-                    redisCacheUtils.deleteObject(waitKey);
-                    return getReplyWeChat(weChatBean.getOpenid(), params.get("ToUserName"), String.valueOf(o));
-                } else {
-                    String replyContent = String.valueOf(o).substring(0, 580);
-                    redisCacheUtils.setCacheObject(waitKey, String.valueOf(o).replace(replyContent, ""), 60, TimeUnit.MINUTES);
-                    return getReplyWeChat(weChatBean.getOpenid(), params.get("ToUserName"), replyContent + "\n  (公众号回复字符限制，输入\"继续\"查看后续内容)");
+            while (messageCountMap.containsKey(msgId)) {
+                String replay = checkMessageCountMap(msgId, currentMsgCount, start, toUserName, weChatBean);
+                if (null != replay) {
+                    return replay;
                 }
-            } else {
-                try {
-                    TimeUnit.SECONDS.sleep(2);
-                } catch (Exception e) {
-                    log.error("", e);
+                if (redisCacheUtils.hasKey(waitKey)) {
+                    Object o = redisCacheUtils.getCacheObject(waitKey);
+                    Integer contentLength = getByteSize(String.valueOf(o));
+                    messageCountMap.remove(msgId);
+                    if (contentLength < 2048) {
+                        redisCacheUtils.deleteObject(waitKey);
+                        return getReplyWeChat(weChatBean.getOpenid(), toUserName, String.valueOf(o));
+                    } else {
+                        String replyContent = String.valueOf(o).substring(0, 580);
+                        redisCacheUtils.setCacheObject(waitKey, String.valueOf(o).replace(replyContent, ""), 60, TimeUnit.MINUTES);
+                        return getReplyWeChat(weChatBean.getOpenid(), toUserName, replyContent + "\n  (公众号回复字符限制，输入\"继续\"查看后续内容)");
+                    }
                 }
-                return getReplyWeChat(weChatBean.getOpenid(), params.get("ToUserName"), "结果处理中，请稍后输入\"继续\"查看AI处理结果(只支持查询最新的一条处理记录)");
             }
-        }
-        if (!redisCacheUtils.hasKey(msgKey)) {
-            redisCacheUtils.setCacheObject(msgKey, "success", 30, TimeUnit.SECONDS);
-            new Thread(() -> {
-                if (StringUtils.isNotBlank(content)) {
-                    redisCacheUtils.deleteObject(waitKey);
-                    chatgptService.multiChatStreamToWX(weChatBean.getOpenid(), msgId, content);
-                }
-            }).start();
+            return success;
         }
 
-        //延迟5秒
-        Object o = putOff(msgKey);
-        if (null == o) {
-            o = redisCacheUtils.getCacheObject(msgKey);
+        //调用chatgpt
+        final String msgKey = String.format(CommonConstant.CHAT_WX_USER_MSG_REPLY_KEY, msgId);
+        if (!redisCacheUtils.hasKey(msgKey)) {
+            redisCacheUtils.setCacheObject(msgKey, success, 30, TimeUnit.SECONDS);
+            AsyncManager.me().execute(new TimerTask() {
+                @Override
+                public void run() {
+                    if (StringUtils.isNotBlank(content)) {
+                        redisCacheUtils.deleteObject(waitKey);
+                        chatgptService.singleChatStreamToWX(weChatBean.getOpenid(), msgId, content);
+                    }
+                }
+            });
         }
-        long time = System.currentTimeMillis() - start;
-        if (!"success".equals(String.valueOf(o)) && time < 4900L) {
-            redisCacheUtils.deleteObject(Arrays.asList(msgKey, waitKey));
-            messageCountMap.remove(msgId);
-            return getReplyWeChat(weChatBean.getOpenid(), params.get("ToUserName"), String.valueOf(o));
+
+        while (messageCountMap.containsKey(msgId)) {
+            String replay = checkMessageCountMap(msgId, currentMsgCount, start, toUserName, weChatBean);
+            if (null != replay) {
+                return replay;
+            }
+            Object o = redisCacheUtils.getCacheObject(msgKey);
+            if (!success.equals(String.valueOf(o))) {
+                messageCountMap.remove(msgId);
+                redisCacheUtils.deleteObject(Arrays.asList(msgKey, waitKey));
+                return getReplyWeChat(weChatBean.getOpenid(), toUserName, String.valueOf(o));
+            }
         }
-        return String.valueOf(o);
+        log.info("回复用户：{}", success);
+        return success;
     }
 
-    private Object putOff(String msgKey) {
-        for (int i = 0; i < 5; i++) {
-            Object o = redisCacheUtils.getCacheObject(msgKey);
-            if ("success".equals(String.valueOf(o))) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(1000);
-                } catch (Exception e) {
-                    log.error("", e);
-                }
-            } else {
-                return o;
-            }
+    private String checkMessageCountMap(String msgId, final Integer currentMsgCount, long start, String toUserName, WeChatBean weChatBean) {
+        if (currentMsgCount < 3 && !currentMsgCount.equals(messageCountMap.get(msgId))) {
+            log.info("回复用户：{}", "success");
+            return "success";
+        }
+        if (currentMsgCount == 3 && (System.currentTimeMillis() - start) >= 4500) {
+            return getReplyWeChat(weChatBean.getOpenid(), toUserName, "结果处理中，请稍后输入\"继续\"查看AI处理结果(只支持查询最新的一条处理记录)");
         }
         return null;
     }

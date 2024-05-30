@@ -15,7 +15,6 @@ public class ChatgptConfig {
 
     private String baseUrl;
 
-    private Integer messageSize;
 
     public String getModel() {
         return model;
@@ -39,13 +38,5 @@ public class ChatgptConfig {
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
-    }
-
-    public void setMessageSize(Integer messageSize) {
-        this.messageSize = messageSize;
-    }
-
-    public Integer getMessageSize() {
-        return messageSize;
     }
 }

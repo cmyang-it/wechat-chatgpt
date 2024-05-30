@@ -24,5 +24,3 @@ chatgpt:
     - sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   #oepnai 接口基础地址 https://openai.xxx.com/ 或者使用自己的代理地址
   baseUrl: https://api.openai.com/
-  # 多轮会话携带的历史会话条数
-  messageSize: 5

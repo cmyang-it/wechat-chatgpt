@@ -39,7 +39,7 @@ public class ChatgptServiceImpl implements ChatgptService {
         WeChatEventSourceListener weChatEventSourceListener = new WeChatEventSourceListener(openId, msgId);
         //获取历史会话记录
         List<Message> messages = getWxMessageList(openId, content);
-        ChatCompletion chatCompletion = ChatCompletion.builder().stream(true).messages(messages).build();
+        ChatCompletion chatCompletion = ChatCompletion.builder().model(config.getModel()).stream(true).messages(messages).build();
         streamClient.streamChatCompletion(chatCompletion, weChatEventSourceListener);
     }
 
@@ -54,7 +54,7 @@ public class ChatgptServiceImpl implements ChatgptService {
         OpenAiStreamClient streamClient = getStreamClient();
         WeChatEventSourceListener weChatEventSourceListener = new WeChatEventSourceListener(openId, msgId);
         Message message = Message.builder().role(BaseMessage.Role.USER).content(content).build();
-        ChatCompletion chatCompletion = ChatCompletion.builder().stream(true).messages(Arrays.asList(message)).build();
+        ChatCompletion chatCompletion = ChatCompletion.builder().model(config.getModel()).stream(true).messages(Arrays.asList(message)).build();
         streamClient.streamChatCompletion(chatCompletion, weChatEventSourceListener);
     }
 
