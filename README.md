@@ -29,7 +29,7 @@
 - c. 配置微信上述填写的令牌
 - d. 配置chatgpt相关
 
-![修改配置](https://image.cmyang.cn/i/2024/04/12/6618a81cd6157.png)
+![修改配置](https://image.cmyang.cn/i/2024/06/04/665eb317f28b0.png)
 
 ### 3. 项目部署
 
