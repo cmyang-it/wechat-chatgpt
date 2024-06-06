@@ -144,7 +144,7 @@ public class WeChatServiceImpl implements WeChatService {
             log.info("回复用户：{}", "success");
             return "success";
         }
-        if (currentMsgCount == 3 && (System.currentTimeMillis() - start) >= 4500) {
+        if (currentMsgCount == 3 && (System.currentTimeMillis() - start) >= 4000) {
             return getReplyWeChat(weChatBean.getOpenid(), toUserName, "结果处理中，请稍后输入\"继续\"查看AI处理结果(只支持查询最新的一条处理记录)");
         }
         return null;
