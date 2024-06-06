@@ -4,7 +4,7 @@
 
 > 本项目是微信公众号 订阅号（未认证）通过简单的配置接入到 ChatGPT 中，通过 openAI 接口实现在订阅号聊天界面直接对话进行AI聊天
 
-> 大家可以关注本人订阅号免费体验 gpt-4o 最新模型
+> 大家可以关注本人订阅号免费体验 gpt-4o 最新模型，回复 #chatgptkey 可免费获取 ChatGPT 令牌。
 
 ![微信订阅号二维码](https://image.cmyang.cn/i/2024/03/28/660508c75724d.jpg)
 
@@ -43,6 +43,10 @@
 1. 将上述配置都修改好后，执行 mvn clean package 会生成 wechatgpt.jar 文件
 2. 项目目录下执行 docker build -t wechatgpt:latest .
 3. docker run -it -d -p 18080:8080 --restart=always --name wechatgpt --privileged=true  -v /etc/localtime:/etc/localtime:ro wechatgpt:latest
+
+### 4. 免费令牌获取
+1. 关注公众号后，根据提示回复 #chatgpt 即可获取免费的ChatGPT令牌，三日内有效。
+2. 访问 https://oneapi.cmyang.cn 注册登录后即可领取免费额度，创建ChatGPT令牌。
 
 # 🙏 鸣谢 
 - chatgpt-java: https://github.com/Grt1228/chatgpt-java
