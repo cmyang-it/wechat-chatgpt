@@ -46,7 +46,7 @@
 
 ### 4. 免费令牌获取
 1. 关注公众号后，根据提示回复 #chatgpt 即可获取免费的ChatGPT令牌，三日内有效。
-2. 访问 https://oneapi.cmyang.cn 注册登录后即可领取免费额度，创建ChatGPT令牌。
+2. 访问 https://api.xiyangai.cn 注册登录后即可领取免费额度，创建ChatGPT令牌。
 
 # 🙏 鸣谢 
 - chatgpt-java: https://github.com/Grt1228/chatgpt-java
