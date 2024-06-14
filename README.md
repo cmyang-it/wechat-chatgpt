@@ -4,7 +4,7 @@
 
 > 本项目是微信公众号 订阅号（未认证）通过简单的配置接入到 ChatGPT 中，通过 openAI 接口实现在订阅号聊天界面直接对话进行AI聊天
 
-> 大家可以关注本人订阅号免费体验 gpt-4o 最新模型，回复 #chatgptkey 可免费获取 ChatGPT 令牌。
+> 大家可以关注本人订阅号免费体验，回复 #chatgptkey 可免费获取 ChatGPT 令牌。
 
 ![微信订阅号二维码](https://image.cmyang.cn/i/2024/03/28/660508c75724d.jpg)
 
