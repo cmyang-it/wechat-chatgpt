@@ -24,7 +24,7 @@
 > 所有需要修改的配置都有注释，都在 application-dev.yml 和 application-prod.yml文件中，请按需选择上线的配置文件
 
 - a. 拉取代码
-> git clone https://github.com/cmyang-it/wechatgpt.git
+> git clone https://github.com/cmyang-it/wechat-chatgpt.git
 - b. 配置redis
 - c. 配置微信上述填写的令牌
 - d. 配置chatgpt相关
