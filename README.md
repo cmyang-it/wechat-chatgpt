@@ -4,7 +4,7 @@
 
 > 本项目是微信公众号 订阅号（未认证）通过简单的配置接入到 ChatGPT 中，通过 openAI 接口实现在订阅号聊天界面直接对话进行AI聊天
 
-> 大家可以关注本人订阅号免费体验，回复 #chatgptkey 可免费获取 ChatGPT 令牌。
+> 大家可以关注本人订阅号免费体验，回复口令可免费获取 ChatGPT令牌（不限制次数，只能使用gpt-3，可用于学习和测试）
 
 ![微信订阅号二维码](https://image.cmyang.cn/i/2024/03/28/660508c75724d.jpg)
 
@@ -45,7 +45,7 @@
 3. docker run -it -d -p 18080:8080 --restart=always --name wechatgpt --privileged=true  -v /etc/localtime:/etc/localtime:ro wechatgpt:latest
 
 ### 4. 免费令牌获取
-1. 关注公众号后，根据提示回复 #chatgpt 即可获取免费的ChatGPT令牌，三日内有效。
+1. 关注公众号后，根据提示回复口令即可获取免费的ChatGPT令牌，三日内有效（不限制次数，只能使用gpt-3，可用于学习和测试）。
 2. 访问 https://api.xiyangai.cn 注册登录后即可领取免费额度，创建ChatGPT令牌。
 
 # 🙏 鸣谢 
