@@ -6,8 +6,7 @@
 
 > 大家可以关注本人订阅号免费体验，回复口令可免费获取 ChatGPT令牌（不限制次数，只能使用gpt-3，可用于学习和测试）
 
-![微信订阅号二维码](https://image.cmyang.cn/i/2024/03/28/660508c75724d.jpg)
-
+![微信订阅号二维码](https://easyimage.cmyang.cn/i/2024/06/29/10h3gf6.webp)
 # 一、配置
 
 ### 1. 微信公众号后台配置
@@ -17,8 +16,7 @@
 - c. 填写令牌，选择明文模式
 - d. 需要注意的是，要先把服务配置好，启动起来，服务器配置保存的时候需要验证
 
-![微信公众号服务器配置](https://image.cmyang.cn/i/2024/03/28/66050890d243a.png)
-
+![微信公众号服务器配置](https://easyimage.cmyang.cn/i/2024/06/29/10hjr2u.webp)
 ### 2. 后端代码配置
 
 > 所有需要修改的配置都有注释，都在 application-dev.yml 和 application-prod.yml文件中，请按需选择上线的配置文件
@@ -29,7 +27,7 @@
 - c. 配置微信上述填写的令牌
 - d. 配置chatgpt相关
 
-![修改配置](https://image.cmyang.cn/i/2024/06/04/665eb317f28b0.png)
+![修改配置](https://easyimage.cmyang.cn/i/2024/07/09/p0w9cu.webp)
 
 ### 3. 项目部署
 
