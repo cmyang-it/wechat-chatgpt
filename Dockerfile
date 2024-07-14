@@ -1,4 +1,4 @@
-FROM luoyea/ubuntu-jre17:latest
+FROM xiyangai/alpine-jre17:latest
 
 LABEL authors="caomingyang"
 
