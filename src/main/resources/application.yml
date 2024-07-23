@@ -32,6 +32,18 @@ spring:
           # 连接池最大阻塞等待时间（使用负值表示没有限制）
           max-wait: -1ms
 
+#公众号配置
+wx:
+  mp:
+    config-storage:
+      type: RedisTemplate
+      key-prefix: WX_MP
+      redis:
+        host: ${spring.data.redis.host}
+        port: ${spring.data.redis.port}
+        password: ${spring.data.redis.password}
+        database: ${spring.data.redis.database}
+
 # 日志配置
 logging:
   level:

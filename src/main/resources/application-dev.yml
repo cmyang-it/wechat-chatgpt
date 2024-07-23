@@ -4,22 +4,43 @@ spring:
   data:
     redis:
     # 地址
-      host:
+      host: 127.0.0.1
     # 端口，默认为6379
-      port: 6739
+      port: 6379
     # 密码
-      password:
+      password: 123456
     # 数据库索引
       database: 16
-
-#wechatmp
-wechatmp:
-  #微信订阅号启用服务器配置时，自己填写的令牌
-  token: xxxxxxxxxxxxxxxxxxxxxx
-
+#genImage config
+gen-image:
+  #绘图识别前缀，放在最前面才会绘图
+  genImageMessagePrefix: 画
+  #绘图结果保存到redis的前缀，识别之后回复图片消息
+  genImageRedisPrefix: mediaId_
+  #绘图调用限制，同一个人多少（秒）后才能再次绘图
+  genImageRestrictTime: 3600
+  #绘图风格，dall-e-3支持 natural or vivid
+  genImageStyle: natural
+  #绘图图片尺寸 dall-e-2: 256x256/512x512/1024x1024  dall-e-3: 1024x1024/1792x1024/1024x1792
+  genImageSize: 256x256
+  #绘图返回结果 url 或者 base64(b64_json)
+  genImageResultType: b64_json
+wx:
+  mp:
+    #公众号appid
+    app-id: xxxxxxxxxxxxxxxxxxxxxx
+    #公众号secret
+    secret: xxxxxxxxxxxxxxxxxxxxxx
+    #公众号加密
+    aes-key: xxxxxxxxxxxxxxxxxxxxxx
+    #微信订阅号启用服务器配置时，自己填写的令牌
+    token: xxxxxxxxxxxxxxxxxxxxxx
 #chatgpt
 chatgpt:
-  model: gpt-3.5-turbo-1106
+  #对话模型
+  model: gpt-4.o-mini
+  #绘图模型 dall-e-2 or dall-e-3
+  genImageModel: dall-e-2
   apikey:
     - sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   #oepnai 接口基础地址 https://openai.xxx.com/ 或者使用自己的代理地址

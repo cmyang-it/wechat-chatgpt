@@ -38,8 +38,7 @@ public class WeChatEventSourceListener extends EventSourceListener {
     public void onClosed(@NotNull EventSource eventSource) {
         log.info("OpenAI关闭sse连接...");
         //缓存回复到redis
-        redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, openId), sb.toString(), 60, TimeUnit.MINUTES);
-        redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_MSG_REPLY_KEY, msgId), sb.toString(), 30, TimeUnit.SECONDS);
+        cacheToRedis(sb.toString());
         eventSource.cancel();
     }
 
@@ -67,6 +66,7 @@ public class WeChatEventSourceListener extends EventSourceListener {
                 ResponseBody body = response.body();
                 if (Objects.nonNull(body)) {
                     log.error("OpenAI  sse连接异常data：{}，异常：", body.string(), t);
+                    cacheToRedis(body.string());
                 } else {
                     log.error("OpenAI  sse连接异常data：{}，异常：", response, t);
                 }
@@ -82,5 +82,14 @@ public class WeChatEventSourceListener extends EventSourceListener {
         log.info("OpenAI建立sse连接...");
     }
 
+    /**
+     * 缓存数据到redis中
+     * @param result gpt返回数据
+     */
+    private void cacheToRedis(String result) {
+        //缓存回复到redis
+        redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, openId), result, 60, TimeUnit.MINUTES);
+        redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_MSG_REPLY_KEY, msgId), result, 30, TimeUnit.SECONDS);
+    }
 
 }

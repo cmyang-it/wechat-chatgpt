@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -10,8 +10,8 @@
 	</parent>
 
 	<groupId>cn.cmyang</groupId>
-	<artifactId>wechatgpt</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>wechat-chatgpt</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>wechatgpt</name>
 	<description>wechatgpt project for Spring Boot</description>
 
@@ -19,10 +19,11 @@
 		<java.version>17</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<fastjson2.version>2.0.25</fastjson2.version>
+		<fastjson2.version>2.0.52</fastjson2.version>
 		<httpclient.version>4.5.13</httpclient.version>
 		<chatgpt.version>1.1.5</chatgpt.version>
 		<jaxb.version>2.1.12</jaxb.version>
+		<wx.map.version>4.6.0</wx.map.version>
 	</properties>
 
 	<dependencies>
@@ -55,6 +56,13 @@
 			<groupId>com.unfbx</groupId>
 			<artifactId>chatgpt-java</artifactId>
 			<version>${chatgpt.version}</version>
+		</dependency>
+
+		<!-- 微信公众号 开源SDK		-->
+		<dependency>
+			<groupId>com.github.binarywang</groupId>
+			<artifactId>wx-java-mp-spring-boot-starter</artifactId>
+			<version>${wx.map.version}</version>
 		</dependency>
 
 		<!-- 常用工具类 -->

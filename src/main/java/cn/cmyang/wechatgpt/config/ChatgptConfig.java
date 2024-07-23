@@ -11,6 +11,8 @@ public class ChatgptConfig {
 
     private String model;
 
+    private String genImageModel;
+
     private List<String> apiKey;
 
     private String baseUrl;
@@ -22,6 +24,14 @@ public class ChatgptConfig {
 
     public void setModel(String model) {
         this.model = model;
+    }
+
+    public String getGenImageModel() {
+        return genImageModel;
+    }
+
+    public void setGenImageModel(String genImageModel) {
+        this.genImageModel = genImageModel;
     }
 
     public List<String> getApiKey() {
@@ -39,4 +49,5 @@ public class ChatgptConfig {
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
     }
+
 }
