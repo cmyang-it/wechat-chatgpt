@@ -40,7 +40,7 @@ git clone https://github.com/cmyang-it/wechat-chatgpt.git
 - d. 配置`chatgpt`相关
 - e. 配置绘图相关
 
-![修改配置](https://easyimage.cmyang.cn/i/2024/07/21/z5uwad.webp)
+![修改配置](https://easyimage.cmyang.cn/i/2024/07/29/10kimp9.webp)
 
 # 四、部署
 
