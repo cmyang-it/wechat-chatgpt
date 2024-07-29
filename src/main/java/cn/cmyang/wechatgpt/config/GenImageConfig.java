@@ -11,8 +11,6 @@ public class GenImageConfig {
 
     private String genImageMessagePrefix;
 
-    private String genImageRedisPrefix;
-
     private Integer genImageRestrictTime;
 
     private String genImageStyle;

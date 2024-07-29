@@ -12,5 +12,6 @@ public class CommonConstant {
 
     public static final String CHAT_WX_USER_MSG_REPLY_KEY = CHAT_WX_BASE_KEY + "USER:MSG:%s";
 
+    public static final String SUCCESS = "success";
 
 }

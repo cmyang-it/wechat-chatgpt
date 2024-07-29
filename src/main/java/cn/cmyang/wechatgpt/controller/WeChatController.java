@@ -38,7 +38,7 @@ public class WeChatController {
         if (!wxMpService.checkSignature(weChatBean.getTimestamp(), weChatBean.getNonce(), weChatBean.getSignature())) {
             return ResponseEntity.ok("非法数据");
         }
-        return ResponseEntity.ok(weChatService.onlineReply(weChatBean, xmlParams));
+        return ResponseEntity.ok(weChatService.onlineReply(xmlParams));
     }
 
 }

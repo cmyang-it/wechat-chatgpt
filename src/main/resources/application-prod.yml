@@ -16,8 +16,6 @@ spring:
 gen-image:
   #绘图识别前缀，放在最前面才会绘图
   genImageMessagePrefix: 画
-  #绘图结果保存到redis的前缀，识别之后回复图片消息
-  genImageRedisPrefix: mediaId_
   #绘图调用限制，同一个人多少（秒）后才能再次绘图
   genImageRestrictTime: 3600
   #绘图风格，dall-e-3支持 natural or vivid

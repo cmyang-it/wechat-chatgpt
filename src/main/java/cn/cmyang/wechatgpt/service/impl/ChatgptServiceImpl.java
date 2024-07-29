@@ -110,9 +110,8 @@ public class ChatgptServiceImpl implements ChatgptService {
                 WxMediaUploadResult result = wxMpService.getMaterialService().mediaUpload("image", "png", new ByteArrayInputStream(bytes));
                 log.debug("{}", result);
                 if (null != result && StringUtils.isNotBlank(result.getMediaId())) {
-                    String mediaId = mpConfig.getGenImageRedisPrefix() + result.getMediaId();
-                    redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, openId), mediaId, 60, TimeUnit.MINUTES);
-                    redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_MSG_REPLY_KEY, msgId), mediaId, 30, TimeUnit.SECONDS);
+                    redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, openId), result.getMediaId(), 60, TimeUnit.MINUTES);
+                    redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_MSG_REPLY_KEY, msgId), result.getMediaId(), 30, TimeUnit.SECONDS);
                 }
             } catch (Exception e) {
                 log.error("", e);

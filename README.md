@@ -22,7 +22,7 @@
 ### 1. 微信公众号后台配置
 
 - a. 点开设置与开发 - 基本配置，启用 服务器配置
-- b. 填写服务器地址 `http://自己的域名:端口/wechat`
+- b. 填写服务器地址 `https://自己的域名:端口/wechat`
 - c. 填写令牌，选择明文模式
 - d. 需要注意的是，要先把服务配置好，启动起来，服务器配置保存的时候需要验证
 
@@ -46,13 +46,13 @@ git clone https://github.com/cmyang-it/wechat-chatgpt.git
 
 ### 1. 直接部署
 > 直接部署到linux服务器上，通过systemctl管理
-1. 将上述配置都修改好后，执行 `mvn clean package` 会生成 wechatgpt.jar 文件
-2. 直接将 wechatgpt.jar 放到目标服务器的 /opt 目录下
+1. 将上述配置都修改好后，执行 `mvn clean package` 会生成 wechat-chatgpt.jar 文件
+2. 直接将 wechat-chatgpt.jar 放到目标服务器的 /opt 目录下
 3. 将项目的 service 目录下面的 wechatgpt.service 放到 `/lib/systmed/system` 目录下
 4. 执行 `systemctl daemon-reload` 和 `systemctl start wechatgpt` 即可启动服务
 
 ### 2. 使用docker部署
-1. 将上述配置都修改好后，执行 `mvn clean package` 会生成 wechatgpt.jar 文件
+1. 将上述配置都修改好后，执行 `mvn clean package` 会生成 wechat-chatgpt.jar 文件
 2. 执行项目目录下构建命令
 ```bash
 docker build -t wechatgpt:latest .
