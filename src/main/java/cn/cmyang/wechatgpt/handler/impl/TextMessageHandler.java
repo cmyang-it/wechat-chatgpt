@@ -81,7 +81,7 @@ public class TextMessageHandler implements WxMessageHandler {
                 @Override
                 public void run() {
                     redisCacheUtils.deleteObject(waitKey);
-                    chatgptService.singleChatStreamToWX(mpMessage.getOpenId(), msgId, mpMessage.getContent());
+                    chatgptService.chatStream(mpMessage.getOpenId(), msgId, mpMessage.getContent());
                 }
             });
         }

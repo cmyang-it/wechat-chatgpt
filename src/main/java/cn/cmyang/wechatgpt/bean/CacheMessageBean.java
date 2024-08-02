@@ -15,6 +15,11 @@ public class CacheMessageBean implements Serializable {
 
     public CacheMessageBean() {}
 
+    public CacheMessageBean(String role, String content) {
+        this.role = role;
+        this.content = content;
+    }
+
     public CacheMessageBean(String sessionId, String role, String content) {
         this.sessionId = sessionId;
         this.role = role;

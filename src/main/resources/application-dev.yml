@@ -10,19 +10,21 @@ spring:
     # 密码
       password: 123456
     # 数据库索引
-      database: 16
+      database: 10
 #genImage config
 gen-image:
+  #绘图模型 dall-e-2 or dall-e-3
+  model: dall-e-2
   #绘图识别前缀，放在最前面才会绘图
-  genImageMessagePrefix: 画
+  message-prefix: 画
   #绘图调用限制，同一个人多少（秒）后才能再次绘图
-  genImageRestrictTime: 3600
+  restrict-time: 3600
   #绘图风格，dall-e-3支持 natural or vivid
-  genImageStyle: natural
+  style: natural
   #绘图图片尺寸 dall-e-2: 256x256/512x512/1024x1024  dall-e-3: 1024x1024/1792x1024/1024x1792
-  genImageSize: 256x256
+  size: 512x512
   #绘图返回结果 url 或者 base64(b64_json)
-  genImageResultType: b64_json
+  result-type: b64_json
 wx:
   mp:
     #公众号appid
@@ -35,11 +37,16 @@ wx:
     token: xxxxxxxxxxxxxxxxxxxxxx
 #chatgpt
 chatgpt:
+  #oepnai 接口基础地址 https://api.openai.com/ 或者使用自己的代理地址
+  base-url: https://api.xiyangai.cn/
+  #key密钥，可设置多个轮询
+  api-key:
+    - sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   #对话模型
-  model: gpt-4.o-mini
-  #绘图模型 dall-e-2 or dall-e-3
-  genImageModel: dall-e-2
-  apikey:
-    - sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-  #oepnai 接口基础地址 https://openai.xxx.com/ 或者使用自己的代理地址
-  baseUrl: https://api.openai.com/
+  model: gpt-3.5-turbo
+  #最大tokens
+  max-tokens: 4000
+  #携带的历史对话 0-5 轮。0 表示关闭多轮对话，一问一答表示一轮对话
+  message-size: 3
+  #提示词，角色设定
+  call-word: You are an artificial intelligence AI that is able to give the most correct answer based on the questions entered by the user.

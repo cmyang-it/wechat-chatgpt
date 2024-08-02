@@ -89,8 +89,8 @@ public class GenImageMessageHandler implements WxMessageHandler {
                 public void run() {
                     redisCacheUtils.deleteObject(waitKey);
                     //控制每个人画图限制
-                    redisCacheUtils.setCacheObject(genImageKey, mpMessage.getOpenId(), config.getGenImageRestrictTime(), TimeUnit.SECONDS);
-                    chatgptService.generateImage(mpMessage.getOpenId(), msgId, mpMessage.getContent().replace(config.getGenImageMessagePrefix(), ""));
+                    redisCacheUtils.setCacheObject(genImageKey, mpMessage.getOpenId(), config.getRestrictTime(), TimeUnit.SECONDS);
+                    chatgptService.generateImage(mpMessage.getOpenId(), msgId, mpMessage.getContent().replace(config.getMessagePrefix(), ""));
                 }
             });
         }

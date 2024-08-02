@@ -2,11 +2,12 @@ package cn.cmyang.wechatgpt.service.impl;
 
 import cn.cmyang.wechatgpt.bean.CacheMessageBean;
 import cn.cmyang.wechatgpt.common.CommonConstant;
-import cn.cmyang.wechatgpt.config.ChatgptConfig;
+import cn.cmyang.wechatgpt.config.ChatGPTConfig;
 import cn.cmyang.wechatgpt.config.GenImageConfig;
 import cn.cmyang.wechatgpt.listener.WeChatEventSourceListener;
 import cn.cmyang.wechatgpt.service.ChatgptService;
 import cn.cmyang.wechatgpt.utils.RedisCacheUtils;
+import com.alibaba.fastjson2.JSON;
 import com.unfbx.chatgpt.OpenAiClient;
 import com.unfbx.chatgpt.OpenAiStreamClient;
 import com.unfbx.chatgpt.entity.chat.BaseMessage;
@@ -30,8 +31,10 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class ChatgptServiceImpl implements ChatgptService {
 
+    private static final List<String> DEFAULT_STYLE_LIST = new LinkedList<>(Arrays.asList("natural", "vivid"));
+
     @Autowired
-    private ChatgptConfig config;
+    private ChatGPTConfig config;
 
     @Autowired
     private GenImageConfig mpConfig;
@@ -43,33 +46,18 @@ public class ChatgptServiceImpl implements ChatgptService {
     private WxMpService wxMpService;
 
     /**
-     * 多轮会话
+     * 对话模型
      * @param openId 用户openid
      * @param msgId 消息id
      * @param content 问话内容
      */
     @Override
-    public void multiChatStreamToWX(String openId, String msgId, String content) {
+    public void chatStream(String openId, String msgId, String content) {
         OpenAiStreamClient streamClient = getStreamClient();
         WeChatEventSourceListener weChatEventSourceListener = new WeChatEventSourceListener(openId, msgId);
-        //获取历史会话记录
+        //获取对话信息
         List<Message> messages = getWxMessageList(openId, content);
-        ChatCompletion chatCompletion = ChatCompletion.builder().model(config.getModel()).stream(true).messages(messages).build();
-        streamClient.streamChatCompletion(chatCompletion, weChatEventSourceListener);
-    }
-
-    /**
-     * 单轮会话
-     * @param openId 用户openid
-     * @param msgId 消息id
-     * @param content 问话内容
-     */
-    @Override
-    public void singleChatStreamToWX(String openId, String msgId, String content) {
-        OpenAiStreamClient streamClient = getStreamClient();
-        WeChatEventSourceListener weChatEventSourceListener = new WeChatEventSourceListener(openId, msgId);
-        Message message = Message.builder().role(BaseMessage.Role.USER).content(content).build();
-        ChatCompletion chatCompletion = ChatCompletion.builder().model(config.getModel()).stream(true).messages(Arrays.asList(message)).build();
+        ChatCompletion chatCompletion = ChatCompletion.builder().maxTokens(config.getMaxTokens()).model(config.getModel()).stream(true).messages(messages).build();
         streamClient.streamChatCompletion(chatCompletion, weChatEventSourceListener);
     }
 
@@ -81,27 +69,22 @@ public class ChatgptServiceImpl implements ChatgptService {
      */
     @Override
     public void generateImage(String openId, String msgId, String prompt) {
-        OpenAiClient client = getClient();
-        Image image;
-        //这里可以用其他风格，不局限于接口规定的两个 natural or vivid
-        prompt += " in the style of " + mpConfig.getGenImageStyle();
-        if (config.getGenImageModel().equals(Image.Model.DALL_E_2.getName())) {
-            image = Image.builder()
-                    .model(config.getGenImageModel())
-                    .responseFormat(mpConfig.getGenImageResultType())
-                    .size(mpConfig.getGenImageSize())
-                    .prompt(prompt)
-                    .build();
-        } else {
-            image = Image.builder()
-                    .model(config.getGenImageModel())
-                    .responseFormat(mpConfig.getGenImageResultType())
-                    .size(mpConfig.getGenImageSize())
-                    .style(mpConfig.getGenImageStyle())
-                    .prompt(prompt)
-                    .build();
+        Image image = Image.builder()
+                .model(mpConfig.getModel())
+                .responseFormat(mpConfig.getResultType())
+                .size(mpConfig.getSize())
+                .prompt(prompt)
+                .build();
+        if (mpConfig.getModel().equals(Image.Model.DALL_E_3.getName())) {
+            image.setStyle(mpConfig.getStyle());
+            //这里可以用其他风格，不局限于接口规定的两个 natural or vivid
+            if (!DEFAULT_STYLE_LIST.contains(mpConfig.getStyle())) {
+                image.setStyle("natural");
+                prompt += " in the style of " + mpConfig.getStyle();
+                image.setPrompt(prompt);
+            }
         }
-        ImageResponse response = client.genImages(image);
+        ImageResponse response = getClient().genImages(image);
         if (null != response && !CollectionUtils.isEmpty(response.getData())) {
             String base64String = response.getData().get(0).getB64Json();
             byte[] bytes = Base64.getDecoder().decode(base64String);
@@ -135,22 +118,33 @@ public class ChatgptServiceImpl implements ChatgptService {
 
     private List<Message> getWxMessageList(String openId, String content) {
         List<Message> messages = new LinkedList<>();
+        Message sysMessage = Message.builder().role(BaseMessage.Role.SYSTEM).content(config.getCallWord()).build();
         Message newMessage = Message.builder().role(BaseMessage.Role.USER).content(content).build();
+        //设置角色提示词
+        messages.add(sysMessage);
+        //是否开启多轮对话
         String key = String.format(CommonConstant.CHAT_WX_CACHE_MESSAGE_KEY, openId);
-        List<CacheMessageBean> cacheList = new ArrayList<>();
-        if (redisCacheUtils.hasKey(key)) {
+        List<CacheMessageBean> cacheList = new LinkedList<>();
+        if (redisCacheUtils.hasKey(key) && config.getMessageSize() > 0) {
             cacheList = redisCacheUtils.getCacheList(key);
-            if (!CollectionUtils.isEmpty(cacheList)) {
-                for (CacheMessageBean cacheMessageBean : cacheList) {
-                    messages.add(Message.builder().role(cacheMessageBean.getRole()).content(cacheMessageBean.getContent()).build());
-                }
-            }
             redisCacheUtils.deleteObject(key);
+            if (!CollectionUtils.isEmpty(cacheList)) {
+                if (cacheList.size() > config.getMessageSize() * 2) {
+                    int len = cacheList.size() - (config.getMessageSize() * 2);
+                    cacheList = cacheList.subList(len, cacheList.size());
+                }
+                cacheList.forEach(x -> messages.add(Message.builder().role(x.getRole()).content(x.getContent()).build()));
+            }
+
         }
         cacheList.add(new CacheMessageBean(openId, BaseMessage.Role.USER.getName(), content));
         redisCacheUtils.setCacheList(key, cacheList);
+        redisCacheUtils.expire(key, 60 , TimeUnit.MINUTES);
+        //最新对话
         messages.add(newMessage);
+        log.debug("{}", JSON.toJSONString(messages));
         return messages;
     }
+
 
 }

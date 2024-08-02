@@ -1,9 +1,11 @@
 package cn.cmyang.wechatgpt.listener;
 
+import cn.cmyang.wechatgpt.bean.CacheMessageBean;
 import cn.cmyang.wechatgpt.common.CommonConstant;
 import cn.cmyang.wechatgpt.utils.RedisCacheUtils;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson2.JSON;
+import com.unfbx.chatgpt.entity.chat.BaseMessage;
 import com.unfbx.chatgpt.entity.chat.ChatCompletionResponse;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
@@ -13,6 +15,8 @@ import okhttp3.sse.EventSourceListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -61,17 +65,16 @@ public class WeChatEventSourceListener extends EventSourceListener {
         try {
             if (Objects.isNull(response)) {
                 log.error("OpenAI  sse连接异常:", t);
-                eventSource.cancel();
             } else {
                 ResponseBody body = response.body();
                 if (Objects.nonNull(body)) {
                     log.error("OpenAI  sse连接异常data：{}，异常：", body.string(), t);
-                    cacheToRedis(body.string());
                 } else {
                     log.error("OpenAI  sse连接异常data：{}，异常：", response, t);
                 }
-                eventSource.cancel();
             }
+            cacheToRedis("The ChatGPT call failed, please try again later");
+            eventSource.cancel();
         } catch (Exception e) {
             log.error("", e);
         }
@@ -90,6 +93,14 @@ public class WeChatEventSourceListener extends EventSourceListener {
         //缓存回复到redis
         redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, openId), result, 60, TimeUnit.MINUTES);
         redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_MSG_REPLY_KEY, msgId), result, 30, TimeUnit.SECONDS);
+
+        //缓存对话
+        String key = String.format(CommonConstant.CHAT_WX_CACHE_MESSAGE_KEY, openId);
+        if (redisCacheUtils.hasKey(key)) {
+            List<CacheMessageBean> cacheMessageList = new LinkedList<>();
+            cacheMessageList.add(new CacheMessageBean(BaseMessage.Role.ASSISTANT.getName(), result));
+            redisCacheUtils.setCacheList(key, cacheMessageList);
+        }
     }
 
 }

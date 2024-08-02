@@ -9,14 +9,16 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "gen-image")
 public class GenImageConfig {
 
-    private String genImageMessagePrefix;
+    private String model;
 
-    private Integer genImageRestrictTime;
+    private String messagePrefix;
 
-    private String genImageStyle;
+    private Integer restrictTime;
 
-    private String genImageSize;
+    private String style;
 
-    private String genImageResultType;
+    private String size;
+
+    private String resultType;
 
 }

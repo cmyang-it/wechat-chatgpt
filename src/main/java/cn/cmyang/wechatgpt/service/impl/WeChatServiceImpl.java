@@ -43,7 +43,7 @@ public class WeChatServiceImpl implements WeChatService {
             //绘图
         } else if (StringUtils.isNotBlank(mpMessage.getContent())
                 && (mpMessage.getContent().equals(CONTINUE_DRAWING_KEY_WORDS)
-                || mpMessage.getContent().startsWith(config.getGenImageMessagePrefix()))) {
+                || mpMessage.getContent().startsWith(config.getMessagePrefix()))) {
             msgType = WxMessageTypeEnum.GEN_IMAGE.getType();
             //普通对话文本消息
         } else if (StringUtils.isNotBlank(mpMessage.getContent())
