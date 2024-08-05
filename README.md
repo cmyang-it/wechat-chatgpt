@@ -16,7 +16,7 @@
 - chatgpt文生图模型（`dall-e-2/dall-e-3`），支持设定匹配前缀、绘图参数等。
 - 对话功能支持`自定义提示词`，支持设定`maxTokens`,支持开启`对话记忆`功能
 
-![对话示例](https://easyimage.cmyang.cn/i/2024/07/23/f8e4j6.webp)
+![对话示例](https://easyimage.cmyang.cn/i/2024/07/21/zakoo1.webp)
 
 # 三、配置
 
@@ -42,7 +42,7 @@ git clone https://github.com/cmyang-it/wechat-chatgpt.git
 - d. 配置`chatgpt`相关
 - e. 配置绘图相关
 
-![修改配置](https://easyimage.cmyang.cn/i/2024/07/29/10kimp9.webp)
+![修改配置](https://easyimage.cmyang.cn/i/2024/08/05/hilv6l.webp)
 
 # 四、部署
 
