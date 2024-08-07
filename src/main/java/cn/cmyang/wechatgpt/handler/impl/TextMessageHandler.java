@@ -103,15 +103,14 @@ public class TextMessageHandler implements WxMessageHandler {
         return textMessage.getContent().equals(CommonConstant.SUCCESS) ? CommonConstant.SUCCESS : textMessage.toXml();
     }
 
-    private synchronized String checkMessageCountMap(String msgId, final Integer currentMsgCount, long start) {
-        String result = null;
-        if (currentMsgCount < 3 && !currentMsgCount.equals(messageCountMap.get(msgId))) {
-            result = CommonConstant.SUCCESS;
+    private String checkMessageCountMap(String msgId, final Integer currentMsgCount, long start) {
+        if (currentMsgCount < 3 && currentMsgCount < messageCountMap.get(msgId)) {
+            return CommonConstant.SUCCESS;
         }
         if (currentMsgCount == 3 && (System.currentTimeMillis() - start) >= 4200) {
-            result = "消息生成中... \n请稍后输入\"继续\"获取结果";
+            return "消息生成中... \n请稍后输入\"继续\"获取结果";
         }
-        return result;
+        return null;
     }
 
     private Integer getByteSize(String content) {

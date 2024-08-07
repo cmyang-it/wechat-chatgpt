@@ -114,15 +114,14 @@ public class GenImageMessageHandler implements WxMessageHandler {
         return textMessage.getContent().equals(CommonConstant.SUCCESS) ? CommonConstant.SUCCESS : textMessage.toXml();
     }
 
-    private synchronized String checkMessageCountMap(String msgId, final Integer currentMsgCount, long start) {
-        String result = null;
-        if (currentMsgCount < 3 && !currentMsgCount.equals(genImageMessageCountMap.get(msgId))) {
-            result = CommonConstant.SUCCESS;
+    private String checkMessageCountMap(String msgId, final Integer currentMsgCount, long start) {
+        if (currentMsgCount < 3 && currentMsgCount < genImageMessageCountMap.get(msgId)) {
+            return CommonConstant.SUCCESS;
         }
-        if (currentMsgCount == 3 && (System.currentTimeMillis() - start) >= 4200) {
-            result = "图像生成中...\n请稍后输入\"图片\"获取结果";
+        if (currentMsgCount == 3 && (System.currentTimeMillis() - start) >= 4000) {
+            return "图像生成中...\n请稍后输入\"图片\"获取结果";
         }
-        return result;
+        return null;
     }
 
 }
