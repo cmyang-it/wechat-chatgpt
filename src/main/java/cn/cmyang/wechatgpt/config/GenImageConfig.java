@@ -19,6 +19,4 @@ public class GenImageConfig {
 
     private String size;
 
-    private String resultType;
-
 }

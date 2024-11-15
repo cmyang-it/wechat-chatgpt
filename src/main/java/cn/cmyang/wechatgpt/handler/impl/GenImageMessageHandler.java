@@ -15,9 +15,7 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlOutTextMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -35,62 +33,39 @@ public class GenImageMessageHandler implements WxMessageHandler {
     private RedisCacheUtils redisCacheUtils;
 
     @Autowired
-    private ChatgptService chatgptService;
+    private ChatgptService chatGPTService;
 
 
     @Override
     public String handlerMessage(WxMpXmlMessage mpMessage) {
         long start = System.currentTimeMillis();
-        String msgId = String.valueOf(mpMessage.getMsgId());
-
-        //缓存每个对话的微信调用次数
-        genImageMessageCountMap.merge(msgId, 1, Integer::sum);
-        //当前是微信的第几次调用
-        final Integer currentMsgCount = genImageMessageCountMap.get(msgId);
 
         //默认返回success
         WxMpXmlOutTextMessage textMessage = genTextMessage(mpMessage);
         textMessage.setContent(CommonConstant.SUCCESS);
 
-        //正式的处理逻辑
-        final String waitKey = String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, mpMessage.getOpenId());
-        if ("图片".equals(mpMessage.getContent())) {
-            while (genImageMessageCountMap.containsKey(msgId)) {
-                String replay = checkMessageCountMap(msgId, currentMsgCount, start);
-                if (null != replay) {
-                    textMessage.setContent(replay);
-                    break;
-                }
-                if (redisCacheUtils.hasKey(waitKey)) {
-                    Object o = redisCacheUtils.getCacheObject(waitKey);
-                    genImageMessageCountMap.remove(msgId);
-                    redisCacheUtils.deleteObject(waitKey);
-                    //回复图片
-                    WxMpXmlOutImageMessage imageMessage = genImageMessage(mpMessage);
-                    imageMessage.setMediaId(String.valueOf(o));
-                    return imageMessage.toXml();
-                }
-            }
+        //缓存每个对话的微信调用次数
+        String msgId = String.valueOf(mpMessage.getMsgId());
+        genImageMessageCountMap.merge(msgId, 1, Integer::sum);
+        //当前是微信的第几次调用
+        final Integer currentMsgCount = genImageMessageCountMap.get(msgId);
+
+        //绘图限制
+        String genImageKey = String.format(CommonConstant.GEN_IMAGE_WX_USER_RESTRICT_KEY, mpMessage.getOpenId());
+        if (genImageMessageCountMap.get(msgId) == 1 && redisCacheUtils.hasKey(genImageKey)) {
+            textMessage.setContent("绘图限制，稍后再试");
             return textMessage.toXml();
         }
 
         //调用 ChatGPT
-        final String msgKey = String.format(CommonConstant.CHAT_WX_USER_MSG_REPLY_KEY, msgId);
-        //绘图限制
-        String genImageKey = String.format(CommonConstant.GEN_IMAGE_WX_USER_RESTRICT_KEY, mpMessage.getOpenId());
-        if (!redisCacheUtils.hasKey(msgKey)  && redisCacheUtils.hasKey(genImageKey)) {
-            textMessage.setContent("当前绘图限制为：1h/张");
-            return textMessage.toXml();
-        }
-        if (!redisCacheUtils.hasKey(msgKey)) {
-            redisCacheUtils.setCacheObject(msgKey, textMessage.getContent(), 30, TimeUnit.SECONDS);
+        final String openIdKey = String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, mpMessage.getOpenId());
+        if (genImageMessageCountMap.get(msgId) == 1) {
+            redisCacheUtils.deleteObject(openIdKey);
+            redisCacheUtils.setCacheObject(openIdKey, CommonConstant.SUCCESS, 60, TimeUnit.SECONDS);
             AsyncManager.me().execute(new TimerTask() {
                 @Override
                 public void run() {
-                    redisCacheUtils.deleteObject(waitKey);
-                    //控制每个人画图限制
-                    redisCacheUtils.setCacheObject(genImageKey, mpMessage.getOpenId(), config.getRestrictTime(), TimeUnit.SECONDS);
-                    chatgptService.generateImage(mpMessage.getOpenId(), msgId, mpMessage.getContent().replace(config.getMessagePrefix(), ""));
+                    chatGPTService.generateImage(mpMessage.getOpenId(), msgId, mpMessage.getContent().replace(config.getMessagePrefix(), ""));
                 }
             });
         }
@@ -101,16 +76,21 @@ public class GenImageMessageHandler implements WxMessageHandler {
                 textMessage.setContent(replay);
                 break;
             }
-            Object o = redisCacheUtils.getCacheObject(msgKey);
-            if (!textMessage.getContent().equals(String.valueOf(o))) {
+            Object o = redisCacheUtils.getCacheObject(openIdKey);
+            if (null != o && !textMessage.getContent().equals(String.valueOf(o))) {
                 genImageMessageCountMap.remove(msgId);
-                redisCacheUtils.deleteObject(Arrays.asList(msgKey, waitKey));
-                //回复图片
-                WxMpXmlOutImageMessage imageMessage = genImageMessage(mpMessage);
-                imageMessage.setMediaId(String.valueOf(o));
-                return imageMessage.toXml();
+                redisCacheUtils.deleteObject(openIdKey);
+                if (String.valueOf(o).startsWith(CommonConstant.CHAT_IMAGE_RESULT_PREFIX)) {
+                    //回复图片
+                    WxMpXmlOutImageMessage imageMessage = genImageMessage(mpMessage);
+                    imageMessage.setMediaId(String.valueOf(o).replace(CommonConstant.CHAT_IMAGE_RESULT_PREFIX, ""));
+                    log.info("回复用户图片:{}", o);
+                    return imageMessage.toXml();
+                }
+                textMessage.setContent(String.valueOf(o));
             }
         }
+        log.info("回复用户:{}", textMessage.getContent());
         return textMessage.getContent().equals(CommonConstant.SUCCESS) ? CommonConstant.SUCCESS : textMessage.toXml();
     }
 
@@ -118,8 +98,8 @@ public class GenImageMessageHandler implements WxMessageHandler {
         if (currentMsgCount < 3 && currentMsgCount < genImageMessageCountMap.get(msgId)) {
             return CommonConstant.SUCCESS;
         }
-        if (currentMsgCount == 3 && (System.currentTimeMillis() - start) >= 4000) {
-            return "图像生成中...\n请稍后输入\"图片\"获取结果";
+        if (currentMsgCount == 3 && (System.currentTimeMillis() - start) >= 3000) {
+            return "图像生成中...\n请稍后输入\"" + CommonConstant.RESUME + "\"获取结果";
         }
         return null;
     }

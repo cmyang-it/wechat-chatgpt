@@ -13,7 +13,7 @@
 - chatgpt文生图模型（`dall-e-2/dall-e-3`），支持设定匹配前缀、绘图参数等。
 - 对话功能支持`自定义提示词`，支持设定`maxTokens`,支持开启`对话记忆`功能
 
-![对话示例](https://easyimage.cmyang.cn/i/2024/07/21/zakoo1.webp)
+![对话示例](https://easyimage.cmyang.cn/i/2024/11/15/pmw56q.webp)
 
 # 三、配置
 

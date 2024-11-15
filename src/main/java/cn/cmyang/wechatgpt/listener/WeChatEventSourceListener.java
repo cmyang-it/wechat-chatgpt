@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 public class WeChatEventSourceListener extends EventSourceListener {
 
     private String openId;
-    private String msgId;
 
     private StringBuffer sb;
 
@@ -32,9 +31,8 @@ public class WeChatEventSourceListener extends EventSourceListener {
 
     public WeChatEventSourceListener() {}
 
-    public WeChatEventSourceListener(String openId, String msgId) {
+    public WeChatEventSourceListener(String openId) {
         this.openId = openId;
-        this.msgId = msgId;
         this.sb = new StringBuffer();
     }
 
@@ -92,7 +90,6 @@ public class WeChatEventSourceListener extends EventSourceListener {
     private void cacheToRedis(String result) {
         //缓存回复到redis
         redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, openId), result, 60, TimeUnit.MINUTES);
-        redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_MSG_REPLY_KEY, msgId), result, 30, TimeUnit.SECONDS);
 
         //缓存对话
         String key = String.format(CommonConstant.CHAT_WX_CACHE_MESSAGE_KEY, openId);

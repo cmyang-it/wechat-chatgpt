@@ -37,6 +37,9 @@ public class ChatgptServiceImpl implements ChatgptService {
     private ChatGPTConfig config;
 
     @Autowired
+    private GenImageConfig genImageConfig;
+
+    @Autowired
     private GenImageConfig mpConfig;
 
     @Autowired
@@ -48,14 +51,13 @@ public class ChatgptServiceImpl implements ChatgptService {
     /**
      * 对话模型
      * @param openId 用户openid
-     * @param msgId 消息id
      * @param content 问话内容
      */
     @Override
-    public void chatStream(String openId, String msgId, String content) {
+    public void chatStream(String openId, String content) {
         OpenAiStreamClient streamClient = getStreamClient();
-        WeChatEventSourceListener weChatEventSourceListener = new WeChatEventSourceListener(openId, msgId);
-        //获取对话信息
+        WeChatEventSourceListener weChatEventSourceListener = new WeChatEventSourceListener(openId);
+        //获取对话
         List<Message> messages = getWxMessageList(openId, content);
         ChatCompletion chatCompletion = ChatCompletion.builder().maxTokens(config.getMaxTokens()).model(config.getModel()).stream(true).messages(messages).build();
         streamClient.streamChatCompletion(chatCompletion, weChatEventSourceListener);
@@ -71,7 +73,7 @@ public class ChatgptServiceImpl implements ChatgptService {
     public void generateImage(String openId, String msgId, String prompt) {
         Image image = Image.builder()
                 .model(mpConfig.getModel())
-                .responseFormat(mpConfig.getResultType())
+                .responseFormat("b64_json")
                 .size(mpConfig.getSize())
                 .prompt(prompt)
                 .build();
@@ -84,21 +86,25 @@ public class ChatgptServiceImpl implements ChatgptService {
                 image.setPrompt(prompt);
             }
         }
-        ImageResponse response = getClient().genImages(image);
-        if (null != response && !CollectionUtils.isEmpty(response.getData())) {
-            String base64String = response.getData().get(0).getB64Json();
-            byte[] bytes = Base64.getDecoder().decode(base64String);
-            try {
-                //上传图片到临时素材库
+        try {
+            ImageResponse response = getClient().genImages(image);
+            if (null != response && !CollectionUtils.isEmpty(response.getData())) {
+                //控制每个人画图限制
+                redisCacheUtils.setCacheObject(String.format(CommonConstant.GEN_IMAGE_WX_USER_RESTRICT_KEY, openId), openId, genImageConfig.getRestrictTime(), TimeUnit.SECONDS);
+
+                String base64String = response.getData().get(0).getB64Json();
+                byte[] bytes = Base64.getDecoder().decode(base64String);
                 WxMediaUploadResult result = wxMpService.getMaterialService().mediaUpload("image", "png", new ByteArrayInputStream(bytes));
-                log.debug("{}", result);
                 if (null != result && StringUtils.isNotBlank(result.getMediaId())) {
-                    redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, openId), result.getMediaId(), 60, TimeUnit.MINUTES);
-                    redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_MSG_REPLY_KEY, msgId), result.getMediaId(), 30, TimeUnit.SECONDS);
+                    //缓存回复到redis
+                    redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, openId),
+                            CommonConstant.CHAT_IMAGE_RESULT_PREFIX + result.getMediaId(), 60, TimeUnit.SECONDS);
                 }
-            } catch (Exception e) {
-                log.error("", e);
             }
+        } catch (Exception e) {
+            log.error("", e);
+            redisCacheUtils.setCacheObject(String.format(CommonConstant.CHAT_WX_USER_WAIT_KEY, openId),
+                    "图片生成失败，请稍后再试", 60, TimeUnit.SECONDS);
         }
     }
 

@@ -1,11 +1,8 @@
 package cn.cmyang.wechatgpt.common.enums;
 
-import lombok.Getter;
-
 /**
  * 消息类型
  */
-@Getter
 public enum WxMessageTypeEnum {
 
     EVENT("event"),
@@ -18,6 +15,8 @@ public enum WxMessageTypeEnum {
 
     GEN_IMAGE("gen_image"),
 
+    RESUME("resume"),
+
     CUSTOM("custom"),
 
     DEFAULT("default"),
@@ -29,6 +28,10 @@ public enum WxMessageTypeEnum {
     }
 
     private String type;
+
+    public String getType() {
+        return type;
+    }
 
     public static WxMessageTypeEnum getByType(String type) {
         for (WxMessageTypeEnum wxMessageTypeEnum : WxMessageTypeEnum.values()) {

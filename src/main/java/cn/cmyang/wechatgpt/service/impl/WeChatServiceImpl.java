@@ -1,5 +1,6 @@
 package cn.cmyang.wechatgpt.service.impl;
 
+import cn.cmyang.wechatgpt.common.CommonConstant;
 import cn.cmyang.wechatgpt.common.enums.WxMessageTypeEnum;
 import cn.cmyang.wechatgpt.config.GenImageConfig;
 import cn.cmyang.wechatgpt.handler.WxMessageHandler;
@@ -16,8 +17,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class WeChatServiceImpl implements WeChatService {
-
-    private static final String CONTINUE_DRAWING_KEY_WORDS = "图片";
 
     @Autowired
     private GenImageConfig config;
@@ -40,10 +39,13 @@ public class WeChatServiceImpl implements WeChatService {
         //订阅
         if (WxMessageTypeEnum.EVENT_SUBSCRIBE.getType().equals(mpMessage.getEvent())) {
             msgType = WxMessageTypeEnum.EVENT_SUBSCRIBE.getType();
+            //继续
+        } else if (StringUtils.isNotBlank(mpMessage.getContent())
+                && mpMessage.getContent().equals(CommonConstant.RESUME)) {
+            msgType = WxMessageTypeEnum.RESUME.getType();
             //绘图
         } else if (StringUtils.isNotBlank(mpMessage.getContent())
-                && (mpMessage.getContent().equals(CONTINUE_DRAWING_KEY_WORDS)
-                || mpMessage.getContent().startsWith(config.getMessagePrefix()))) {
+                && mpMessage.getContent().startsWith(config.getMessagePrefix())) {
             msgType = WxMessageTypeEnum.GEN_IMAGE.getType();
             //普通对话文本消息
         } else if (StringUtils.isNotBlank(mpMessage.getContent())
